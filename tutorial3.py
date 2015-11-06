@@ -1,6 +1,6 @@
 """
 tutorial4.py
-by E. Dennison
+by D. Hertog-Raz
 """
 from ggame import App, RectangleAsset, ImageAsset, Sprite, LineStyle, Color, Frame
 
@@ -25,7 +25,10 @@ class SpaceShip(Sprite):
         SpaceGame.listenKeyEvent("keydown", "space", self.thrustOn)
         SpaceGame.listenKeyEvent("keyup", "space", self.thrustOff)
         self.fxcenter = self.fycenter = 0.5
-
+        self.lturn = 0
+        self.lturnframe = 1
+        SpaceGame.listenKeyEvent("keydown", "left arrow", self.lturnOn)
+        SpaceGame.listenKeyEvent("keyup", "left arrow", self.lturnOff)
     def step(self):
         self.x += self.vx
         self.y += self.vy
@@ -35,6 +38,13 @@ class SpaceShip(Sprite):
             self.thrustframe += 1
             if self.thrustframe == 4:
                 self.thrustframe = 1
+        if self.lturn == 1:
+            self.setImage(self.lturnframe)
+            self.lturnframe += 1
+            if self.lturnframe == 4:
+                self.lturnframe = 1
+        else:
+            self.setImage(0)
         else:
             self.setImage(0)
 
