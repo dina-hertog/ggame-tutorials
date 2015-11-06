@@ -1,67 +1,69 @@
-
-from ggame import App, RectangleAsset, ImageAsset, SoundAsset, Sprite, Sound
-from ggame import LineStyle, Color
+"""
+tutorial4.py
+by E. Dennison
+"""
+from ggame import App, RectangleAsset, ImageAsset, Sprite, LineStyle, Color, Frame
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
-green = Color(0x00ff00, 1)
-black = Color(0, 1)
-noline = LineStyle(0, black)
-bg_asset = RectangleAsset(SCREEN_WIDTH, SCREEN_HEIGHT, noline, green)
-bg = Sprite(bg_asset, (0,0))
 
-# Sounds
-pew1_asset = SoundAsset("sounds/pew1.mp3")
-pew1 = Sound(pew1_asset)
-pop_asset = SoundAsset("sounds/reappear.mp3")
-pop = Sound(pop_asset)
-# A ball! This is already in the ggame-tutorials repository
-ball_asset = ImageAsset("images/orb-150545_640.png")
-ball = Sprite(ball_asset, (0, 0))
-# Original image is too big. Scale it to 1/10 its original size
-ball.scale = 0.1
-ball.y = 200
-# custom attributes
-ball.dir = 1
-ball.go = True
-# Sounds
-pew1_asset = SoundAsset("sounds/pew1.mp3")
-pew1 = Sound(pew1_asset)
-pop_asset = SoundAsset("sounds/reappear.mp3")
-pop = Sound(pop_asset)
+class SpaceShip(Sprite):
+    """
+    Animated space ship
+    """
+    asset = ImageAsset("images/four_spaceship_by_albertov_with_thrust.png", 
+        Frame(227,0,292-227,125), 4, 'vertical')
+
+    def __init__(self, position):
+        super().__init__(SpaceShip.asset, position)
+        self.vx = 1
+        self.vy = 1
+        self.vr = 0.01
+        self.thrust = 0
+        self.thrustframe = 1
+        SpaceGame.listenKeyEvent("keydown", "space", self.thrustOn)
+        SpaceGame.listenKeyEvent("keyup", "space", self.thrustOff)
+        self.fxcenter = self.fycenter = 0.5
+
+    def step(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.rotation += self.vr
+        if self.thrust == 1:
+            self.setImage(self.thrustframe)
+            self.thrustframe += 1
+            if self.thrustframe == 4:
+                self.thrustframe = 1
+        else:
+            self.setImage(0)
+
+    def thrustOn(self, event):
+        self.thrust = 1
+
+    def thrustOff(self, event):
+        self.thrust = 0
 
 
-def reverse(b):
-    b.dir *= -1
-    pop.play()
 
-# Set up function for handling screen refresh
-def step():
-    if ball.go:
-        ball.x += ball.dir
-        if ball.x + ball.width > SCREEN_WIDTH or ball.x < 0:
-            ball.x -= ball.dir
-            reverse(ball)
+class SpaceGame(App):
+    """
+    Tutorial4 space game example.
+    """
+    def __init__(self, width, height):
+        super().__init__(width, height)
+        black = Color(0, 1)
+        noline = LineStyle(0, black)
+        bg_asset = RectangleAsset(width, height, noline, black)
+        bg = Sprite(bg_asset, (0,0))
+        SpaceShip((100,100))
+        SpaceShip((150,150))
+        SpaceShip((200,50))
 
-# Handle the space key
-def spaceKey(event):
-    ball.go = not ball.go
+    def step(self):
+        for ship in self.getSpritesbyClass(SpaceShip):
+            ship.step()
 
-# Handle the "reverse" key
-def reverseKey(event):
-    reverse(ball)
 
-# Handle the mouse click
-def mouseClick(event):
-    ball.x = event.x
-    ball.y = event.y
-    pew1.play()
-
-myapp = App(SCREEN_WIDTH, SCREEN_HEIGHT)
-# Set up event handlers for the app
-myapp.listenKeyEvent('keydown', 'space', spaceKey)
-myapp.listenKeyEvent('keydown', 'r', reverseKey)
-myapp.listenMouseEvent('click', mouseClick)
-
-myapp.run(step)
+myapp = SpaceGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+myapp.run()
